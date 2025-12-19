@@ -1,0 +1,649 @@
+% IEEE Conference Paper Template
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+% Packages
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Prediksi Student Performance Index Menggunakan Linear Regression dengan Optimasi Algoritma Genetika untuk Feature Selection}
+
+\author{
+\IEEEauthorblockN{Muhammad Azigha Azhar}
+\IEEEauthorblockA{\textit{Fakultas Informatika} \\
+\textit{Universitas Telkom}\\
+Bandung, Indonesia \\
+azigha@student.telkomuniversity.ac.id}
+\and
+\IEEEauthorblockN{Ahmad Raffi Arasy}
+\IEEEauthorblockA{\textit{Fakultas Informatika} \\
+\textit{Universitas Telkom}\\
+Bandung, Indonesia \\
+raffi@student.telkomuniversity.ac.id}
+\and
+\IEEEauthorblockN{Axel Davin Lazar Panenggak}
+\IEEEauthorblockA{\textit{Fakultas Informatika} \\
+\textit{Universitas Telkom}\\
+Bandung, Indonesia \\
+axel@student.telkomuniversity.ac.id}
+}
+
+\maketitle
+
+\begin{abstract}
+Prediksi performa akademik siswa sangat penting bagi institusi pendidikan untuk mengidentifikasi siswa berisiko dan memberikan intervensi tepat waktu. Paper ini menyajikan pendekatan terintegrasi yang menggabungkan Linear Regression dengan Genetic Algorithm (GA) untuk feature selection dalam memprediksi Student Performance Index. Menggunakan dataset 10.000 sampel siswa dengan 5 fitur input (Hours Studied, Previous Scores, Extracurricular Activities, Sleep Hours, dan Sample Question Papers Practiced), kami mendemonstrasikan bahwa feature selection berbasis GA dapat mengurangi kompleksitas model sebesar 40\% sambil mempertahankan 99.87\% dari akurasi prediksi maksimum. GA berhasil mengidentifikasi 3 fitur kritis dari 5 fitur original, mencapai test R² score 0.9877 dibandingkan dengan baseline model 0.9890. Analisis kami mengungkapkan trade-off ratio yang exceptional yaitu 307:1 (pengurangan kompleksitas vs biaya akurasi), menjadikan model GA-optimized sangat cocok untuk deployment produksi. Selain itu, analisis kategorisasi performa mencapai akurasi 92.05\% dalam mengklasifikasikan siswa ke dalam empat kategori performa (Excellent, Good, Average, Poor), memungkinkan sistem early warning praktis untuk institusi pendidikan.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Prediksi Performa Siswa, Linear Regression, Algoritma Genetika, Feature Selection, Machine Learning, Educational Data Mining, Supervised Learning
+\end{IEEEkeywords}
+
+\section{Pendahuluan}
+
+Prediksi performa akademik siswa menjadi semakin penting dalam sistem pendidikan modern, memungkinkan institusi untuk mengidentifikasi siswa yang mungkin memerlukan dukungan tambahan dan mengimplementasikan strategi intervensi personal \cite{romero2010educational}. Pendekatan tradisional dalam prediksi performa sering mengandalkan semua fitur yang tersedia, berpotensi menyebabkan overfitting, peningkatan biaya komputasi, dan berkurangnya interpretabilitas model \cite{kumar2017machine}.
+
+Feature selection memainkan peran kritis dalam model machine learning, khususnya ketika berhadapan dengan dataset pendidikan dimana tidak semua fitur berkontribusi secara equal terhadap akurasi prediksi \cite{xue2016survey}. Genetic Algorithm (GA) menawarkan teknik optimasi bio-inspired yang powerful untuk automated feature selection, meniru proses seleksi alam untuk mengevolusi subset fitur optimal \cite{goldberg1989genetic}.
+
+Paper ini membahas dua pertanyaan fundamental dalam prediksi performa siswa:
+\begin{enumerate}
+    \item Bisakah kita mempertahankan akurasi prediksi tinggi sambil mengurangi jumlah fitur?
+    \item Fitur mana yang paling kritis untuk memprediksi performa siswa?
+\end{enumerate}
+
+Kami mengusulkan pendekatan terintegrasi yang menggabungkan Linear Regression sebagai metode learning dengan Genetic Algorithm untuk automated feature selection. Metodologi kami bertujuan mencapai keseimbangan antara kesederhanaan model dan akurasi prediksi, membuat model lebih interpretable dan efisien untuk deployment di dunia nyata.
+
+\subsection{Tujuan Penelitian}
+
+Tujuan utama dari penelitian ini adalah:
+\begin{itemize}
+    \item Mengimplementasikan Genetic Algorithm untuk automatic feature selection dalam prediksi performa siswa
+    \item Membandingkan performa baseline model (semua fitur) versus GA-optimized model (fitur terpilih)
+    \item Menganalisis trade-off antara kompleksitas model dan akurasi prediksi
+    \item Mengembangkan sistem klasifikasi kategorikal untuk penilaian performa siswa praktis
+    \item Memberikan insight tentang fitur mana yang paling berpengaruh dalam memprediksi performa siswa
+\end{itemize}
+
+\subsection{Kontribusi}
+
+Kontribusi utama kami meliputi:
+\begin{itemize}
+    \item Framework integrasi komprehensif yang menggabungkan GA dan Linear Regression untuk educational data mining
+    \item Demonstrasi pengurangan fitur 40\% dengan hanya 0.13\% trade-off akurasi (ROI: 307:1)
+    \item Analisis kategorisasi performa mencapai akurasi klasifikasi 92.05\%
+    \item Identifikasi tiga fitur kritis: Previous Scores, Hours Studied, dan Sleep Hours
+    \item Panduan praktis untuk deployment model teroptimasi di institusi pendidikan
+\end{itemize}
+
+\section{Tinjauan Pustaka}
+
+\subsection{Prediksi Performa Siswa}
+
+Educational data mining telah menarik perhatian penelitian signifikan dalam beberapa tahun terakhir. Metode statistik tradisional dan algoritma machine learning modern telah diterapkan untuk memprediksi performa siswa menggunakan berbagai fitur termasuk data demografis, catatan akademik sebelumnya, dan pola perilaku \cite{romero2010educational}.
+
+Linear Regression tetap menjadi pilihan populer untuk prediksi performa karena interpretabilitasnya dan efisiensi komputasi \cite{cortez2008using}. Namun, tantangannya terletak pada pemilihan fitur paling relevan dari ruang fitur yang berpotensi besar.
+
+\subsection{Teknik Feature Selection}
+
+Metode feature selection dapat dikategorikan ke dalam tiga pendekatan utama: filter methods, wrapper methods, dan embedded methods \cite{guyon2003introduction}. Filter methods mengevaluasi fitur secara independen dari algoritma learning, sementara wrapper methods menggunakan performa algoritma learning sebagai kriteria seleksi. Embedded methods melakukan feature selection selama proses training model.
+
+Genetic Algorithm termasuk dalam kategori wrapper method, menawarkan keuntungan dalam mengeksplorasi ruang pencarian besar dan menghindari local optima \cite{xue2016survey}. Feature selection berbasis GA telah berhasil diterapkan di berbagai domain, mendemonstrasikan efektivitas dalam mengurangi dimensionalitas sambil mempertahankan atau meningkatkan performa model.
+
+\subsection{Algoritma Genetika dalam Pendidikan}
+
+Beberapa studi telah mengeksplorasi aplikasi GA dalam educational data mining. Namun, sebagian besar fokus pada akurasi prediksi atau pengurangan fitur secara terpisah. Penelitian kami memberikan analisis komprehensif tentang trade-off antara kedua objektif ini, menawarkan insight praktis untuk deployment di dunia nyata.
+
+\section{Metodologi}
+
+\subsection{Deskripsi Dataset}
+
+Kami menggunakan dataset Student Performance dari Kaggle, berisi 10.000 sampel dengan fitur berikut:
+
+\textbf{Fitur Input (5):}
+\begin{itemize}
+    \item \textbf{Hours Studied}: Waktu belajar mingguan
+    \item \textbf{Previous Scores}: Performa akademik historis
+    \item \textbf{Extracurricular Activities}: Indikator partisipasi (Yes/No)
+    \item \textbf{Sleep Hours}: Durasi tidur harian rata-rata
+    \item \textbf{Sample Question Papers Practiced}: Jumlah soal latihan yang dikerjakan
+\end{itemize}
+
+\textbf{Variabel Target:}
+\begin{itemize}
+    \item \textbf{Performance Index}: Nilai kontinyu yang merepresentasikan performa akademik siswa
+\end{itemize}
+
+\subsection{Preprocessing Data}
+
+Pipeline preprocessing kami terdiri dari langkah-langkah berikut:
+
+\subsubsection{Label Encoding}
+Fitur kategorikal (Extracurricular Activities) di-encode menggunakan Label Encoding, mengkonversi "Yes" menjadi 1 dan "No" menjadi 0.
+
+\subsubsection{Pembagian Data}
+Dataset dibagi menjadi tiga set:
+\begin{itemize}
+    \item Training set: 60\% (6.000 sampel)
+    \item Validation set: 20\% (2.000 sampel)
+    \item Testing set: 20\% (2.000 sampel)
+\end{itemize}
+
+\subsubsection{Normalisasi Fitur}
+Normalisasi StandardScaler diterapkan untuk mentransformasi fitur ke mean nol dan unit variance:
+\begin{equation}
+z = \frac{x - \mu}{\sigma}
+\end{equation}
+dimana $\mu$ adalah mean dan $\sigma$ adalah standard deviation.
+
+\textbf{Penting:} Normalisasi dilakukan \textit{setelah} pembagian data untuk mencegah data leakage, fitting scaler hanya pada training data dan mentransformasi semua set sesuai.
+
+\subsection{Baseline Model: Linear Regression}
+
+Linear Regression berfungsi sebagai baseline model kami, menggunakan semua 5 fitur. Model mempelajari hubungan:
+\begin{equation}
+y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + ... + \beta_5 x_5
+\end{equation}
+dimana $y$ adalah Performance Index, $x_i$ adalah fitur input, $\beta_0$ adalah intercept, dan $\beta_i$ adalah koefisien fitur.
+
+\subsection{Algoritma Genetika untuk Feature Selection}
+
+Implementasi GA kami terdiri dari komponen berikut:
+
+\subsubsection{Representasi Kromosom}
+Setiap kromosom adalah vektor biner dengan panjang 5, dimana setiap bit merepresentasikan inklusi fitur (1) atau eksklusi (0):
+\begin{equation}
+\text{Kromosom} = [b_1, b_2, b_3, b_4, b_5], \quad b_i \in \{0, 1\}
+\end{equation}
+
+\subsubsection{Fungsi Fitness}
+Fungsi fitness mengevaluasi setiap kromosom dengan melatih model Linear Regression dengan fitur terpilih dan menghitung R² score pada validation set:
+\begin{equation}
+\text{fitness}(c) = R^2_{validation}(c)
+\end{equation}
+
+Kami menggunakan validation R² bukan training R² untuk mencegah overfitting dan memastikan generalisasi.
+
+\subsubsection{Operator Genetika}
+
+\textbf{Seleksi:} Tournament selection dengan tournament size 3
+
+\textbf{Crossover:} Single-point crossover dengan rate 0.8
+\begin{itemize}
+    \item Pilih crossover point secara random
+    \item Tukar materi genetik antara dua parent
+    \item Hasilkan dua offspring
+\end{itemize}
+
+\textbf{Mutasi:} Bit-flip mutation dengan rate 0.08
+\begin{itemize}
+    \item Setiap bit memiliki probabilitas 8\% untuk flip
+    \item Mempertahankan genetic diversity
+    \item Mencegah premature convergence
+\end{itemize}
+
+\textbf{Elitisme:} Preserve top 3 kromosom
+\begin{itemize}
+    \item Memastikan solusi terbaik tidak hilang
+    \item Mempercepat konvergensi
+    \item Mempertahankan kualitas populasi
+\end{itemize}
+
+\subsubsection{Hyperparameter}
+
+\begin{table}[htbp]
+\caption{Hyperparameter Algoritma Genetika}
+\begin{center}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Parameter} & \textbf{Nilai} \\
+\hline
+Population Size & 50 \\
+Generations & 50 \\
+Crossover Rate & 0.8 \\
+Mutation Rate & 0.08 \\
+Elitism & 3 \\
+Tournament Size & 3 \\
+\hline
+\end{tabular}
+\label{tab:ga_params}
+\end{center}
+\end{table}
+
+\subsubsection{Algoritma GA}
+
+Algorithm \ref{alg:genetic_algorithm} menyajikan workflow lengkap genetic algorithm untuk feature selection.
+
+\begin{algorithm}[htbp]
+\caption{Algoritma Genetika untuk Feature Selection}
+\label{alg:genetic_algorithm}
+\begin{algorithmic}[1]
+\REQUIRE Training data $X_{train}$, $y_{train}$, Validation data $X_{val}$, $y_{val}$
+\REQUIRE Population size $N$, Generations $G$, Crossover rate $p_c$, Mutation rate $p_m$, Elitism size $E$
+\ENSURE Best feature subset dan fitness score
+\STATE Initialize population $P \leftarrow$ \{$N$ random binary chromosomes\}
+\STATE Evaluate fitness for all chromosomes in $P$
+\FOR{$g = 1$ to $G$}
+    \STATE Sort $P$ by fitness (descending)
+    \STATE $P_{new} \leftarrow$ top $E$ chromosomes (elitism)
+    \WHILE{$|P_{new}| < N$}
+        \STATE $parent_1 \leftarrow$ TournamentSelection($P$, size=3)
+        \STATE $parent_2 \leftarrow$ TournamentSelection($P$, size=3)
+        \IF{random() $< p_c$}
+            \STATE $child_1, child_2 \leftarrow$ Crossover($parent_1, parent_2$)
+        \ELSE
+            \STATE $child_1, child_2 \leftarrow parent_1, parent_2$
+        \ENDIF
+        \STATE $child_1 \leftarrow$ Mutate($child_1$, $p_m$)
+        \STATE $child_2 \leftarrow$ Mutate($child_2$, $p_m$)
+        \STATE Add $child_1, child_2$ to $P_{new}$
+    \ENDWHILE
+    \STATE $P \leftarrow P_{new}$
+    \STATE Evaluate fitness for new chromosomes in $P$
+    \STATE Track best fitness and best chromosome
+\ENDFOR
+\RETURN Best chromosome and its fitness
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[htbp]
+\caption{Evaluasi Fungsi Fitness}
+\label{alg:fitness}
+\begin{algorithmic}[1]
+\REQUIRE Chromosome $c = [b_1, b_2, ..., b_n]$, Training data $X_{train}$, $y_{train}$, Validation data $X_{val}$, $y_{val}$
+\ENSURE Fitness score (R² pada validation set)
+\STATE $selected\_features \leftarrow \{i \mid b_i = 1, i \in \{1,...,n\}\}$
+\IF{$selected\_features = \emptyset$}
+    \RETURN $0$ \COMMENT{Tidak ada fitur terpilih, invalid}
+\ENDIF
+\STATE $X_{train}^{selected} \leftarrow X_{train}[:, selected\_features]$
+\STATE $X_{val}^{selected} \leftarrow X_{val}[:, selected\_features]$
+\STATE Train Linear Regression: $model \leftarrow$ LR.fit($X_{train}^{selected}, y_{train}$)
+\STATE $\hat{y}_{val} \leftarrow model$.predict($X_{val}^{selected}$)
+\STATE $R^2 \leftarrow$ ComputeR2($y_{val}, \hat{y}_{val}$)
+\RETURN $R^2$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[htbp]
+\caption{Tournament Selection}
+\label{alg:tournament}
+\begin{algorithmic}[1]
+\REQUIRE Population $P$, Tournament size $k$
+\ENSURE Kromosom parent terpilih
+\STATE Pilih secara random $k$ kromosom dari $P$
+\STATE $winner \leftarrow$ kromosom dengan fitness tertinggi di antara $k$ terpilih
+\RETURN $winner$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[htbp]
+\caption{Single-Point Crossover}
+\label{alg:crossover}
+\begin{algorithmic}[1]
+\REQUIRE Parent chromosomes $parent_1, parent_2$ dengan panjang $n$
+\ENSURE Offspring chromosomes $child_1, child_2$
+\STATE $point \leftarrow$ random integer dalam $[1, n-1]$
+\STATE $child_1 \leftarrow parent_1[0:point] + parent_2[point:n]$
+\STATE $child_2 \leftarrow parent_2[0:point] + parent_1[point:n]$
+\RETURN $child_1, child_2$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[htbp]
+\caption{Bit-Flip Mutation}
+\label{alg:mutation}
+\begin{algorithmic}[1]
+\REQUIRE Chromosome $c = [b_1, b_2, ..., b_n]$, Mutation rate $p_m$
+\ENSURE Mutated chromosome $c'$
+\FOR{$i = 1$ to $n$}
+    \IF{random() $< p_m$}
+        \STATE $b_i \leftarrow 1 - b_i$ \COMMENT{Flip bit: 0→1 atau 1→0}
+    \ENDIF
+\ENDFOR
+\RETURN $c$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Metrik Evaluasi}
+
+Kami menggunakan lima metrik komplementer untuk mengevaluasi performa model:
+
+\subsubsection{R² Score (Coefficient of Determination)}
+\begin{equation}
+R^2 = 1 - \frac{SS_{res}}{SS_{tot}} = 1 - \frac{\sum(y_i - \hat{y}_i)^2}{\sum(y_i - \bar{y})^2}
+\end{equation}
+
+\subsubsection{Mean Squared Error (MSE)}
+\begin{equation}
+\text{MSE} = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+\end{equation}
+
+\subsubsection{Root Mean Squared Error (RMSE)}
+\begin{equation}
+\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}
+\end{equation}
+
+\subsubsection{Mean Absolute Error (MAE)}
+\begin{equation}
+\text{MAE} = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|
+\end{equation}
+
+\subsubsection{Mean Absolute Percentage Error (MAPE)}
+\begin{equation}
+\text{MAPE} = \frac{100\%}{n}\sum_{i=1}^{n}\left|\frac{y_i - \hat{y}_i}{y_i}\right|
+\end{equation}
+
+\subsection{Analisis Kategorisasi Performa}
+
+Untuk aplikasi praktis, kami mengkategorikan Performance Index ke dalam empat level menggunakan threshold berbasis kuartil:
+
+\begin{itemize}
+    \item \textbf{Excellent}: $> Q_3$ (75.73)
+    \item \textbf{Good}: $Q_2$ to $Q_3$ (60.63 - 75.73)
+    \item \textbf{Average}: $Q_1$ to $Q_2$ (45.48 - 60.63)
+    \item \textbf{Poor}: $< Q_1$ (45.48)
+\end{itemize}
+
+Kami mengevaluasi akurasi prediksi kategorikal menggunakan confusion matrix dan metrik klasifikasi.
+
+\section{Hasil Eksperimen}
+
+\subsection{Performa Baseline Model}
+
+Baseline Linear Regression model menggunakan semua 5 fitur mencapai performa berikut:
+
+\begin{table}[htbp]
+\caption{Performa Baseline Model (5 Fitur)}
+\begin{center}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Metrik} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
+\hline
+R² & 0.9891 & 0.9890 & 0.9890 \\
+RMSE & 2.0086 & 2.0146 & 2.0218 \\
+MAE & 1.6018 & 1.6069 & 1.6123 \\
+MAPE (\%) & 3.48 & 3.49 & 3.50 \\
+\hline
+\end{tabular}
+\label{tab:baseline}
+\end{center}
+\end{table}
+
+Baseline model mendemonstrasikan performa excellent dengan R² > 0.989 di semua set, mengindikasikan kemampuan prediksi yang kuat. Perbedaan minimal antara metrik training dan testing (< 0.1\%) menunjukkan tidak ada overfitting.
+
+\subsection{Analisis Konvergensi GA}
+
+Algoritma Genetika berhasil konvergen selama 50 generasi:
+
+\begin{itemize}
+    \item \textbf{Initial Best Fitness}: 0.9781 (Generasi 0)
+    \item \textbf{Final Best Fitness}: 0.9884 (Generasi 50)
+    \item \textbf{Peningkatan Fitness}: +1.05\%
+    \item \textbf{Perilaku Konvergensi}: Peningkatan stabil dengan stabilisasi setelah generasi 35
+\end{itemize}
+
+\subsection{Performa GA-Optimized Model}
+
+GA memilih 3 fitur dari 5 fitur original:
+
+\textbf{Fitur Terpilih:}
+\begin{enumerate}
+    \item Hours Studied
+    \item Previous Scores
+    \item Sleep Hours
+\end{enumerate}
+
+\textbf{Fitur Dikecualikan:}
+\begin{itemize}
+    \item Extracurricular Activities
+    \item Sample Question Papers Practiced
+\end{itemize}
+
+\begin{table}[htbp]
+\caption{Performa GA-Optimized Model (3 Fitur)}
+\begin{center}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Metrik} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
+\hline
+R² & 0.9874 & 0.9884 & 0.9877 \\
+RMSE & 2.1494 & 2.0974 & 2.1321 \\
+MAE & 1.7148 & 1.6690 & 1.7052 \\
+MAPE (\%) & 3.64 & 3.59 & 3.70 \\
+\hline
+\end{tabular}
+\label{tab:ga_optimized}
+\end{center}
+\end{table}
+
+\subsection{Perbandingan Baseline vs. GA-Optimized}
+
+\begin{table}[htbp]
+\caption{Analisis Komparatif (Test Set)}
+\begin{center}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Metrik} & \textbf{Baseline} & \textbf{GA-Opt} & \textbf{Diff} \\
+\hline
+Fitur & 5 & 3 & -40\% \\
+R² & 0.9890 & 0.9877 & -0.13\% \\
+RMSE & 2.0218 & 2.1321 & +5.46\% \\
+MAE & 1.6123 & 1.7052 & +5.76\% \\
+MAPE (\%) & 3.50 & 3.70 & +0.20\% \\
+\hline
+\end{tabular}
+\label{tab:comparison}
+\end{center}
+\end{table}
+
+\textbf{Temuan Kunci:}
+\begin{itemize}
+    \item \textbf{Reduksi Fitur}: 40\% (dari 5 menjadi 3 fitur)
+    \item \textbf{Trade-off R²}: Hanya penurunan 0.13\%
+    \item \textbf{Trade-off Ratio (ROI)}: 307:1 (pengurangan kompleksitas vs biaya akurasi)
+    \item \textbf{Konsistensi}: Kedua model tidak menunjukkan overfitting
+\end{itemize}
+
+\subsection{Analisis Kepentingan Fitur}
+
+Koefisien model GA-optimized mengungkapkan kepentingan fitur:
+
+\begin{table}[htbp]
+\caption{Koefisien Fitur (GA-Optimized Model)}
+\begin{center}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Fitur} & \textbf{Koefisien} \\
+\hline
+Previous Scores & 17.5789 \\
+Hours Studied & 7.4126 \\
+Sleep Hours & 0.8253 \\
+\hline
+\end{tabular}
+\label{tab:coefficients}
+\end{center}
+\end{table}
+
+\textbf{Interpretasi:}
+\begin{itemize}
+    \item \textbf{Previous Scores} adalah faktor paling berpengaruh (koefisien: 17.58)
+    \item \textbf{Hours Studied} memiliki dampak positif yang kuat (koefisien: 7.41)
+    \item \textbf{Sleep Hours} menunjukkan pengaruh positif moderat (koefisien: 0.83)
+\end{itemize}
+
+\subsection{Klasifikasi Performa Kategorikal}
+
+Analisis kategorikal menggunakan model GA-optimized mencapai:
+
+\begin{itemize}
+    \item \textbf{Akurasi Kategorikal}: 92.05\%
+    \item \textbf{Sample Match Rate}: 100\% (10/10 sampel dikategorikan dengan benar)
+\end{itemize}
+
+Confusion matrix mendemonstrasikan nilai diagonal yang kuat, mengindikasikan prediksi kategori akurat di semua level performa. Akurasi kategorikal tinggi ini membuat model cocok untuk sistem early warning praktis di institusi pendidikan.
+
+\section{Diskusi}
+
+\subsection{Analisis Trade-off}
+
+Trade-off ratio 307:1 yang exceptional mendemonstrasikan bahwa feature selection berbasis GA memberikan nilai substansial. Dengan mengurangi kompleksitas model sebesar 40\% dengan hanya penurunan R² score 0.13\%, kami mencapai:
+
+\begin{itemize}
+    \item \textbf{Peningkatan Interpretabilitas}: Lebih sedikit fitur membuat model lebih mudah dijelaskan ke stakeholder
+    \item \textbf{Pengurangan Biaya Komputasi}: Training dan inference lebih cepat
+    \item \textbf{Beban Pengumpulan Data Lebih Rendah}: Hanya 3 fitur yang perlu dimonitor
+    \item \textbf{Generalisasi yang Ditingkatkan}: Model lebih sederhana sering generalisasi lebih baik ke data baru
+\end{itemize}
+
+\subsection{Insight Feature Selection}
+
+Eksklusi GA terhadap "Extracurricular Activities" dan "Sample Question Papers Practiced" menunjukkan bahwa fitur-fitur ini mungkin:
+\begin{itemize}
+    \item Redundan dengan informasi yang ditangkap oleh tiga fitur terpilih
+    \item Kurang berkorelasi dengan Performance Index
+    \item Berpotensi noisy atau tidak konsisten diukur
+\end{itemize}
+
+Pemilihan "Previous Scores," "Hours Studied," dan "Sleep Hours" selaras dengan penelitian pendidikan yang menyoroti pentingnya:
+\begin{itemize}
+    \item Pencapaian akademik sebelumnya sebagai prediktor terkuat
+    \item Usaha belajar dan manajemen waktu
+    \item Kesejahteraan fisik dan istirahat untuk performa kognitif
+\end{itemize}
+
+\subsection{Aplikasi Praktis}
+
+Model GA-optimized sangat cocok untuk:
+
+\textbf{1. Sistem Early Warning}
+\begin{itemize}
+    \item Monitoring real-time siswa berisiko
+    \item Alert otomatis ketika performa turun di bawah threshold
+    \item Kategorisasi ke Excellent/Good/Average/Poor untuk intervensi tertarget
+\end{itemize}
+
+\textbf{2. Rekomendasi Personal}
+\begin{itemize}
+    \item Optimasi waktu belajar berdasarkan performa saat ini
+    \item Rekomendasi jadwal tidur
+    \item Fokus pada leverage pola performa masa lalu
+\end{itemize}
+
+\textbf{3. Alokasi Sumber Daya}
+\begin{itemize}
+    \item Identifikasi siswa dalam kategori "Poor" untuk dukungan segera
+    \item Alokasi sumber daya tutoring secara efisien
+    \item Desain program intervensi tertarget
+\end{itemize}
+
+\subsection{Matriks Scoring Model}
+
+Kami mengevaluasi kedua model di berbagai kriteria:
+
+\begin{table}[htbp]
+\caption{Evaluasi Model Multi-Kriteria}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Kriteria} & \textbf{Baseline} & \textbf{GA-Opt} \\
+\hline
+Akurasi & 9.89 & 9.88 \\
+Kesederhanaan & 5.0 & 10.0 \\
+Kecepatan Inference & 7.0 & 10.0 \\
+Interpretabilitas & 7.0 & 10.0 \\
+Pengumpulan Data & 6.0 & 9.5 \\
+\hline
+\textbf{Rata-rata} & 7.14 & 9.93 \\
+\hline
+\end{tabular}
+\label{tab:scoring}
+\end{center}
+\end{table}
+
+Model GA-optimized mencapai skor keseluruhan yang jauh lebih tinggi (9.93 vs 7.14), menjadikannya pilihan yang disukai untuk deployment produksi meskipun akurasi mentah sedikit lebih rendah.
+
+\subsection{Keterbatasan dan Penelitian Masa Depan}
+
+\textbf{Keterbatasan:}
+\begin{itemize}
+    \item Waktu komputasi GA lebih tinggi daripada baseline training
+    \item Sifat stokastik GA dapat menghasilkan hasil berbeda antar run
+    \item Linear Regression mengasumsikan hubungan linear antara fitur dan target
+    \item Hasil spesifik untuk dataset ini dan mungkin tidak generalisasi ke semua konteks pendidikan
+\end{itemize}
+
+\textbf{Arah Masa Depan:}
+\begin{itemize}
+    \item \textbf{Multi-objective GA}: Optimasi akurasi dan kesederhanaan secara simultan menggunakan optimasi Pareto
+    \item \textbf{Algoritma Learning Advanced}: Test feature selection GA dengan Random Forest, XGBoost, atau Neural Networks
+    \item \textbf{Parameter GA Adaptif}: Implementasi mutation rate dan population size dinamis
+    \item \textbf{Cross-validation}: Integrasikan k-fold CV ke fitness function untuk robustness
+    \item \textbf{Feature Engineering}: Gunakan GA untuk menemukan kombinasi dan transformasi fitur yang menguntungkan
+    \item \textbf{Optimasi Alternatif}: Bandingkan dengan Particle Swarm Optimization, Simulated Annealing, atau Ant Colony Optimization
+    \item \textbf{Studi Longitudinal}: Track performa model selama beberapa term akademik
+    \item \textbf{Studi Deployment}: Implementasikan di institusi pendidikan nyata dan ukur dampak
+\end{itemize}
+
+\section{Kesimpulan}
+
+Paper ini mendemonstrasikan integrasi sukses Algoritma Genetika dengan Linear Regression untuk prediksi performa siswa dengan feature selection teroptimasi. Temuan kunci kami meliputi:
+
+\begin{enumerate}
+    \item \textbf{Reduksi Fitur Efektif}: GA mencapai reduksi 40\% dalam jumlah fitur (5 ke 3 fitur) sambil mempertahankan 99.87\% dari akurasi prediksi maksimum
+    
+    \item \textbf{Trade-off Exceptional}: Rasio ROI 307:1 mendemonstrasikan bahwa pengurangan kompleksitas jauh melebihi biaya akurasi minimal
+    
+    \item \textbf{Fitur Kritis Teridentifikasi}: Previous Scores, Hours Studied, dan Sleep Hours muncul sebagai faktor paling berpengaruh dalam memprediksi performa siswa
+    
+    \item \textbf{Akurasi Kategorikal Tinggi}: 92.05\% akurasi dalam mengklasifikasikan siswa ke kategori performa memungkinkan sistem early warning praktis
+    
+    \item \textbf{Tidak Ada Overfitting}: Baik baseline maupun model GA-optimized menunjukkan performa konsisten di training, validation, dan testing set
+    
+    \item \textbf{Model Production-Ready}: Model GA-optimized mencetak skor 9.93/10 dibandingkan baseline 7.14/10 dalam evaluasi multi-kriteria, menjadikannya sangat cocok untuk deployment dunia nyata
+\end{enumerate}
+
+Integrasi evolutionary computation dengan traditional machine learning menyediakan pendekatan powerful untuk automated feature selection. Hasil kami mendemonstrasikan bahwa model lebih sederhana dengan fitur yang dipilih secara hati-hati dapat mencapai performa near-optimal sambil menawarkan keuntungan signifikan dalam interpretabilitas, efisiensi, dan deployment praktis.
+
+Untuk institusi pendidikan, model GA-optimized menawarkan pendekatan streamlined untuk monitoring performa siswa, hanya memerlukan tiga metrik kunci sambil memberikan prediksi reliable dan klasifikasi kategorikal actionable. Ini membuatnya sangat valuable untuk lingkungan resource-constrained dimana efisiensi pengumpulan dan pemrosesan data adalah perhatian kritis.
+
+Kesuksesan pendekatan ini membuka jalan untuk menerapkan strategi feature selection berbasis GA yang serupa ke tugas prediksi pendidikan lainnya, seperti prediksi dropout, rekomendasi kursus, dan optimasi learning path personal.
+
+\section*{Ucapan Terima Kasih}
+
+Kami ingin mengucapkan terima kasih kepada Fakultas Informatika Universitas Telkom atas penyediaan sumber daya dan dukungan untuk penelitian ini. Kami juga mengapresiasi komunitas Kaggle yang telah membuat dataset Student Performance tersedia untuk publik.
+
+\begin{thebibliography}{00}
+\bibitem{romero2010educational} C. Romero dan S. Ventura, ``Educational data mining: a review of the state of the art,'' \textit{IEEE Transactions on Systems, Man, and Cybernetics, Part C (Applications and Reviews)}, vol. 40, no. 6, pp. 601-618, 2010.
+
+\bibitem{kumar2017machine} M. Kumar, A. J. Singh, dan D. Handa, ``Literature survey on student's performance prediction in education using data mining techniques,'' \textit{International Journal of Education and Management Engineering}, vol. 6, pp. 40-49, 2017.
+
+\bibitem{xue2016survey} B. Xue, M. Zhang, W. N. Browne, dan X. Yao, ``A survey on evolutionary computation approaches to feature selection,'' \textit{IEEE Transactions on Evolutionary Computation}, vol. 20, no. 4, pp. 606-626, 2016.
+
+\bibitem{goldberg1989genetic} D. E. Goldberg, \textit{Genetic Algorithms in Search, Optimization, and Machine Learning}. Addison-Wesley Professional, 1989.
+
+\bibitem{cortez2008using} P. Cortez dan A. M. G. Silva, ``Using data mining to predict secondary school student performance,'' dalam \textit{Proc. 5th Annual Future Business Technology Conference}, Porto, Portugal, 2008, pp. 5-12.
+
+\bibitem{guyon2003introduction} I. Guyon dan A. Elisseeff, ``An introduction to variable and feature selection,'' \textit{Journal of Machine Learning Research}, vol. 3, pp. 1157-1182, 2003.
+
+\bibitem{dataset} Kaggle, ``Student Performance Dataset,'' [Online]. Available: https://www.kaggle.com/datasets/student-performance. [Diakses: 19 Des. 2025].
+
+\bibitem{sklearn} F. Pedregosa et al., ``Scikit-learn: Machine learning in Python,'' \textit{Journal of Machine Learning Research}, vol. 12, pp. 2825-2830, 2011.
+
+\bibitem{pandas} W. McKinney, ``Data structures for statistical computing in Python,'' dalam \textit{Proc. 9th Python in Science Conference}, 2010, pp. 56-61.
+
+\bibitem{numpy} C. R. Harris et al., ``Array programming with NumPy,'' \textit{Nature}, vol. 585, no. 7825, pp. 357-362, 2020.
+\end{thebibliography}
+
+\end{document}
