@@ -19,237 +19,237 @@
 
 ---
 
-## SLIDE 2: INTRODUCTION & PROBLEM STATEMENT
-**Research Questions:**
-- ❓ Can we maintain high prediction accuracy while reducing features?
-- ❓ Which features are most critical for student performance?
+## SLIDE 2: PENDAHULUAN & RUMUSAN MASALAH
+**Pertanyaan Penelitian:**
+- ❓ Bisakah kita mempertahankan akurasi prediksi tinggi sambil mengurangi fitur?
+- ❓ Fitur mana yang paling kritis untuk performa siswa?
 
 **Motivasi:**
-- 🎓 Early identification of at-risk students
-- 📊 Traditional approaches use all features → overfitting, complexity
-- 🎯 Feature selection reduces dimensionality & improves interpretability
+- 🎓 Identifikasi dini siswa berisiko
+- 📊 Pendekatan tradisional menggunakan semua fitur → overfitting, kompleksitas tinggi
+- 🎯 Feature selection mengurangi dimensionalitas & meningkatkan interpretabilitas
 
 **Dataset: Student Performance (Kaggle)**
-- **Samples:** 10,000 students
-- **Input Features (5):** Hours Studied, Previous Scores, Extracurricular Activities, Sleep Hours, Sample Question Papers Practiced
-- **Target:** Performance Index (continuous)
+- **Sampel:** 10.000 siswa
+- **Fitur Input (5):** Hours Studied, Previous Scores, Extracurricular Activities, Sleep Hours, Sample Question Papers Practiced
+- **Target:** Performance Index (kontinyu)
 
 ---
 
-## SLIDE 3: RESEARCH OBJECTIVES & CONTRIBUTIONS
-**Objectives:**
-1. Implement GA for automatic feature selection
-2. Compare baseline (all features) vs GA-optimized (selected features)
-3. Analyze trade-off: complexity vs accuracy
-4. Develop categorical classification for practical assessment
-5. Identify most influential features
+## SLIDE 3: TUJUAN PENELITIAN & KONTRIBUSI
+**Tujuan:**
+1. Mengimplementasikan GA untuk automatic feature selection
+2. Membandingkan baseline (semua fitur) vs GA-optimized (fitur terpilih)
+3. Menganalisis trade-off: kompleksitas vs akurasi
+4. Mengembangkan klasifikasi kategorikal untuk penilaian praktis
+5. Mengidentifikasi fitur paling berpengaruh
 
-**Key Contributions:**
-- ✅ Comprehensive GA + Linear Regression integration framework
-- ✅ 40% feature reduction with only 0.13% accuracy trade-off (ROI: 307:1)
-- ✅ Categorical analysis: 92.05% accuracy
-- ✅ Identified 3 critical features
-- ✅ Practical deployment guidelines for educational institutions
+**Kontribusi Utama:**
+- ✅ Framework integrasi komprehensif GA + Linear Regression
+- ✅ Reduksi fitur 40% dengan hanya 0.13% trade-off akurasi (ROI: 307:1)
+- ✅ Analisis kategorikal: 92.05% akurasi
+- ✅ Identifikasi 3 fitur kritis
+- ✅ Panduan deployment praktis untuk institusi pendidikan
 
 ---
 
-## SLIDE 4: PREPROCESSING DATA
-**Langkah-langkah:**
-- ✅ Dataset: 10,000 sampel
-- ✅ Label EnMETHODOLOGY OVERVIEW
-**Integrated Approach:**
+## SLIDE 4: GAMBARAN METODOLOGI
+**Pendekatan Terintegrasi:**
 
 **Pipeline:**
 ```
-Data → Preprocessing → Baseline Model → GA Feature Selection → GA-Optimized Model → Evaluation
+Data → Preprocessing → Baseline Model → GA Feature Selection → GA-Optimized Model → Evaluasi
 ```
 
 **1. Preprocessing:**
-- Label Encoding (categorical → numerical)
-- Data Split: 60% Train / 20% Val / 20% Test
+- Label Encoding (kategorikal → numerik)
+- Pembagian Data: 60% Train / 20% Val / 20% Test
 - StandardScaler: z = (x - μ) / σ (mean=0, std=1)
-- **Critical:** Fit scaler on trDESIGN
-**Chromosome Representation:**
-- Binary vector: [b₁, b₂, b₃, b₄, b₅] where bᵢ ∈ {0, 1}
-- 1 = feature selected, 0 = feature excluded
-- Example: [1, 1, 0, 1, 0] = select features 1, 2, 4
+- **Kritis:** Fit scaler hanya pada training data (mencegah data leakage)
 
-**Genetic Operators:**
-- **Selection:** Tournament selection (size=3)
+**2. Baseline Model:**
+- Linear Regression dengan SEMUA 5 fitur
+- Menetapkan benchmark performa
+
+**3. Optimasi GA:**
+- Feature selection dengan Genetic Algorithm
+- Fungsi fitness: R² pada validation set
+
+---
+
+## SLIDE 5: GENETIC ALGORITHM - DESAIN
+**Representasi Kromosom:**
+- Vektor biner: [b₁, b₂, b₃, b₄, b₅] dimana bᵢ ∈ {0, 1}
+- 1 = fitur dipilih, 0 = fitur dikecualikan
+- Contoh: [1, 1, 0, 1, 0] = pilih fitur 1, 2, 4
+
+**Operator Genetika:**
+- **Seleksi:** Tournament selection (size=3)
 - **Crossover:** Single-point crossover (rate=0.8)
-- **Mutation:** Bit-flip mutation (rate=0.08)
-- **Elitism:** Preserve top 3 chromosomes
+- **Mutasi:** Bit-flip mutation (rate=0.08)
+- **Elitisme:** Pertahankan 3 kromosom terbaik
 
-**Fitness Function:**
-- fitness(c) = R²_validation with selected features
-- Train Linear Regression with subset → Evaluate on validation
-- **Why validation R²?** Prevents overfitting, ensures generalization
+**Fungsi Fitness:**
+- fitness(c) = R²_validation dengan fitur terpilih
+- Latih Linear Regression dengan subset → Evaluasi pada validation
+- **Kenapa validation R²?** Mencegah overfitting, memastikan generalisasi
 
-**Hyperparameters:** Population=50, Generations=50
-- ⭐ **Elitism:** 3 kromosom terbaik
+**Hyperparameter:** Population=50, Generations=50
 
-**Fitness Function:**
-- Maximize R² Score pada validation set
-- Evaluasi setiap kombinasi fitur
+---
 
-**Hasil GA:**
-- ✅ Konvergen dengan baik
-- ✅ Memilih **3 dari 5 fitur** terbaik
-GA ALGORITHM WORKFLOW
-**Main GA Loop (Algorithm 1):**
-1. Initialize population: 50 random chromosomes
-2. Evaluate fitness for all chromosomes
-3. **For each generation (50 total):**
-   - Sort population by fitness
-   - **Elitism:** Keep top 3 chromosomes
-   - **Selection:** Tournament selection (k=3)
-   - **Crossover:** Single-point (80% probability)
-   - **Mutation:** Bit-flip (8% per bit)
-   - Evaluate new chromosomes
-   - Track best fitness & chromosome
-4. Return best feature subset
+## SLIDE 6: WORKFLOW ALGORITMA GA
+**Loop Utama GA (Algoritma 1):**
+1. Inisialisasi populasi: 50 kromosom random
+2. Evaluasi fitness untuk semua kromosom
+3. **Untuk setiap generasi (50 total):**
+   - Sortir populasi berdasarkan fitness
+   - **Elitisme:** Pertahankan 3 kromosom terbaik
+   - **Seleksi:** Tournament selection (k=3)
+   - **Crossover:** Single-point (probabilitas 80%)
+   - **Mutasi:** Bit-flip (8% per bit)
+   - Evaluasi kromosom baru
+   - Lacak best fitness & kromosom
+4. Return subset fitur terbaik
 
-**Convergence:**
+**Konvergensi:**
 - Initial best fitness: 0.9781 (Gen 0)
 - Final best fitness: 0.9884 (Gen 50)
-- ImprovemenEXPERIMENTAL RESULTS - BASELINE
-**Baseline Model: Linear Regression with ALL 5 Features**
+- Peningkatan: +1.05%
+- Stabil setelah generasi 35
 
-**Performance Metrics:**
-| Metric | Training | Validation | Testing |
+**Tampilkan Diagram:** Flowchart GA atau Convergence Plot
+
+---
+
+## SLIDE 7: HASIL EKSPERIMEN - BASELINE
+**Baseline Model: Linear Regression dengan SEMUA 5 Fitur**
+
+**Metrik Performa:**
+| Metrik | Training | Validation | Testing |
 |--------|----------|------------|---------|
 | **R²** | 0.9891 | 0.9890 | **0.9890** |
 | **RMSE** | 2.0086 | 2.0146 | **2.0218** |
 | **MAE** | 1.6018 | 1.6069 | **1.6123** |
 | **MAPE** | 3.48% | 3.49% | **3.50%** |
 
-**Key Observations:**
-- ✅ Excellent performance (R² > 98.9%)
-- ✅ Highly consistent across all sets
-- ✅ No overfitting detected (Train-Test gap < 0.1%)
-- ❓ **Question:** Do we need all 5 features?
-**Metrik Performa:**
-| Set | R² | RMSE | MAE | MAPE |
-|-----|-----|------|-----|------|
-| **Training** | 0.9874 | 2.1494 | 1.7148 | 3.64% |
-| **Validation** | 0.9884 | 2.0974 | 1.6690 | 3.59% |
-| **Testing** | 0.9877 | 2.1321 | 1.7052 | 3.70% |
+**Observasi Kunci:**
+- ✅ Performa excellent (R² > 98.9%)
+- ✅ Sangat konsisten di semua set
+- ✅ Tidak ada overfitting terdeteksi (Train-Test gap < 0.1%)
+- ❓ **Pertanyaan:** Apakah kita perlu semua 5 fitur?
 
-**Interpretasi:**
-- ✅ PerformaEXPERIMENTAL RESULTS - GA-OPTIMIZED
-**GA-Optimized Model: 3 Selected Features**
+---
 
-**Selected Features by GA:**
-| Feature | Coefficient | Interpretation |
+## SLIDE 8: HASIL EKSPERIMEN - GA-OPTIMIZED
+## SLIDE 8: HASIL EKSPERIMEN - GA-OPTIMIZED
+**GA-Optimized Model: 3 Fitur Terpilih**
+
+**Fitur Terpilih oleh GA:**
+| Fitur | Koefisien | Interpretasi |
 |---------|-------------|----------------|
-| **Previous Scores** | 17.5789 | ⭐ Most influential |
-| **Hours Studied** | 7.4126 | Strong positive impact |
-| **Sleep Hours** | 0.8253 | Moderate influence |
+| **Previous Scores** | 17.5789 | ⭐ Paling berpengaruh |
+| **Hours Studied** | 7.4126 | Dampak positif kuat |
+| **Sleep Hours** | 0.8253 | Pengaruh moderat |
 
-**Excluded Features:** Extracurricular Activities, Sample Question Papers
+**Fitur Dikecualikan:** Extracurricular Activities, Sample Question Papers
 
-**Performance Metrics:**
-| Metric | Training | Validation | Testing |
+**Metrik Performa:**
+| Metrik | Training | Validation | Testing |
 |--------|----------|------------|---------|
 | **R²** | 0.9874 | 0.9884 | **0.9877** |
 | **RMSE** | 2.1494 | 2.0974 | **2.1321** |
 | **MAE** | 1.7148 | 1.6690 | **1.7052** |
 | **MAPE** | 3.64% | 3.59% | **3.70%** |
 
-**Key:** Still excellent performance with 40% fewer features!
+**Kunci:** Performa masih excellent dengan 40% lebih sedikit fitur!
 
-**Key Insight:**
-- 🎯 **Reduksi Fitur:** 40% (5→3 fitur)
-- 📉 **TradeCOMPARATIVE ANALYSIS
-**Head-to-Head Comparison (Test Set):**
+---
 
-| Metric | Baseline (5) | GA-Opt (3) | Difference |
-|--------|--------------|------------|------------|
-| **Features** | 5 | 3 | **-40%** ✅ |
+## SLIDE 9: ANALISIS KOMPARATIF
+**Perbandingan Head-to-Head (Test Set):**
+
+| Metrik | Baseline (5) | GA-Opt (3) | Perbedaan |
+|--------|--------------|------------|-----------|
+| **Fitur** | 5 | 3 | **-40%** ✅ |
 | **R²** | 0.9890 | 0.9877 | -0.13% |
 | **RMSE** | 2.0218 | 2.1321 | +5.46% |
 | **MAE** | 1.6123 | 1.7052 | +5.76% |
 | **MAPE** | 3.50% | 3.70% | +0.20% |
 
-**Trade-off Analysis:**
-- 🎯 **Complexity Reduction:** 40% (5 → 3 features)
-- 📉 **Accuracy Cost:** Only 0.13% R² decrease
+**Analisis Trade-off:**
+- 🎯 **Reduksi Kompleksitas:** 40% (5 → 3 fitur)
+- 📉 **Cost Akurasi:** Hanya 0.13% penurunan R²
 - ⚡ **ROI (Return on Investment):** **307:1**
   - Formula: (40% / 0.13%) = 307.7
 
-**Interpretation:** Exceptional trade-off! Model achieves **99.87%** of maximum performance with **60%** of features.** 100% (10/10 sampel)
+**Interpretasi:** Trade-off exceptional! Model mencapai **99.87%** performa maksimum dengan **60%** fitur.
 
-**Aplikasi PrCATEGORICAL PERFORMANCE ANALYSIS
-**Practical Classification System:**
+---
 
-**Quartile-based Categories:**
+## SLIDE 10: ANALISIS KATEGORISASI PERFORMA
+**Sistem Klasifikasi Praktis:**
+
+**Kategori Berbasis Kuartil:**
 - 🏆 **Excellent:** > 75.73 (Q₃)
 - ✅ **Good:** 60.63 - 75.73 (Q₂-Q₃)
 - 📊 **Average:** 45.48 - 60.63 (Q₁-Q₂)
 - ⚠️ **Poor:** < 45.48 (Q₁)
 
-**Classification Results (GA Model):**
-- **Categorical Accuracy:** 92.05%
-- **Confusion Matrix:** Strong diagonal (accurate predictions)
-- **Sample Match Rate:** 100% (10/10 samples correct)
+**Hasil Klasifikasi (Model GA):**
+- **Akurasi Kategorikal:** 92.05%
+- **Confusion Matrix:** Diagonal kuat (prediksi akurat)
+- **Sample Match Rate:** 100% (10/10 sampel benar)
 
-**Practical Applications:**
-1. **Early Warning System:** Identify at-risk students (Poor/Average)
-2. **Resource Allocation:** Target interventions efficiently
-3. **Personalized Recommendations:** Based on 3 key features
-4. **Automated Monitoring:** Real-time alerts for performance drops
-| Accuracy | 9.89 | 9.88 | Baseline |
-| Simplicity | 5.0 | 10.0 | **GA** ✅ |
-| Speed | 7.0 | 10.0 | **GA** ✅ |
-| Interpretability | 7.0 | 10.0 | **GA** ✅ |
-| **TOTAL** | 7.14/10 | **9.93/10** | **GA** 🏆 |
-
-**Kesimpulan:** GA model mencapai **99.87%** performa maksimal dengan **60%** fitur
-
+**Aplikasi Praktis:**
+1. **Sistem Peringatan Dini:** Identifikasi siswa berisiko (Poor/Average)
+2. **Alokasi Sumber Daya:** Target intervensi efisien
+3. **Rekomendasi Personal:** Berdasarkan 3 fitur kunci
+4. **Monitoring Otomatis:** Alert real-time untuk penurunan performa
 ---
 
-## SLIDE 11: KESIMPULAN & REKOMENDASI
-**Kesimpulan DISCUSSION & MODEL SELECTION
-**Why Choose GA-Optimized Model?**
+## SLIDE 11: DISKUSI & PEMILIHAN MODEL
+**Mengapa Memilih Model GA-Optimized?**
 
-**Multi-Criteria Evaluation:**
-| Criterion | Baseline | GA-Optimized | Winner |
-|-----------|----------|--------------|--------|
-| Accuracy | 9.89/10 | 9.88/10 | Baseline |
-| Simplicity | 5.0/10 | 10.0/10 | **GA** ✅ |
-| Inference Speed | 7.0/10 | 10.0/10 | **GA** ✅ |
-| Interpretability | 7.0/10 | 10.0/10 | **GA** ✅ |
-| Data Collection | 6.0/10 | 9.5/10 | **GA** ✅ |
-| **OVERALL** | **7.14/10** | **9.93/10** | **GA** 🏆 |
+**Evaluasi Multi-Kriteria:**
+| Kriteria | Baseline | GA-Optimized | Pemenang |
+|----------|----------|--------------|----------|
+| Akurasi | 9.89/10 | 9.88/10 | Baseline |
+| Kesederhanaan | 5.0/10 | 10.0/10 | **GA** ✅ |
+| Kecepatan Inferensi | 7.0/10 | 10.0/10 | **GA** ✅ |
+| Interpretabilitas | 7.0/10 | 10.0/10 | **GA** ✅ |
+| Pengumpulan Data | 6.0/10 | 9.5/10 | **GA** ✅ |
+| **KESELURUHAN** | **7.14/10** | **9.93/10** | **GA** 🏆 |
 
-**Advantages of GA-Optimized:**
-- ✅ Simpler model (easier to explain to stakeholders)
-- ✅ Faster inference (production-ready)
-- ✅ Lower data collection burden (only 3 features)
-- ✅ Better generalization (reduced overfitting risk)
+**Keunggulan GA-Optimized:**
+- ✅ Model lebih sederhana (mudah dijelaskan ke stakeholder)
+- ✅ Inferensi lebih cepat (production-ready)
+- ✅ Beban pengumpulan data lebih rendah (hanya 3 fitur)
+- ✅ Generalisasi lebih baik (risiko overfitting berkurang)
 - ✅ Cost-effective (ROI 307:1)
 
-**Limitations:** GA computation time higher, stochastic results
+**Limitasi:** Waktu komputasi GA lebih tinggi, hasil stokastik
+
 ---
 
-## SLIDE 12: CONCLUSION
-**Key Findings:**
-1. ✅ **Successful Integration:** GA + Linear Regression effectively reduces features
-2. ✅ **Exceptional Trade-off:** 40% reduction for 0.13% accuracy cost (ROI: 307:1)
-3. ✅ **Critical Features Identified:** Previous Scores (17.58), Hours Studied (7.41), Sleep Hours (0.83)
-4. ✅ **High Categorical Accuracy:** 92.05% for practical classification
-5. ✅ **No Overfitting:** Both models consistent across train/val/test
-6. ✅ **Production-Ready:** GA-optimized scores 9.93/10 vs baseline's 7.14/10
+## SLIDE 12: KESIMPULAN
+**Temuan Utama:**
+1. ✅ **Integrasi Berhasil:** GA + Linear Regression efektif mereduksi fitur
+2. ✅ **Trade-off Exceptional:** Reduksi 40% dengan cost akurasi 0.13% (ROI: 307:1)
+3. ✅ **Fitur Kritis Teridentifikasi:** Previous Scores (17.58), Hours Studied (7.41), Sleep Hours (0.83)
+4. ✅ **Akurasi Kategorikal Tinggi:** 92.05% untuk klasifikasi praktis
+5. ✅ **Tidak Ada Overfitting:** Kedua model konsisten di train/val/test
+6. ✅ **Production-Ready:** GA-optimized skor 9.93/10 vs baseline 7.14/10
 
-**Future Work:**
-- Multi-objective GA (accuracy + simplicity simultaneously)
-- Test with advanced algorithms (Random Forest, XGBoost)
-- Longitudinal studies across multiple academic terms
-- Real-world deployment in educational institutions
+**Riset Lanjutan:**
+- Multi-objective GA (akurasi + kesederhanaan simultan)
+- Uji dengan algoritma advanced (Random Forest, XGBoost)
+- Studi longitudinal lintas beberapa semester
+- Deployment real-world di institusi pendidikan
 
-**Impact:** Simpler, faster, interpretable model achieving 99.87% of maximum performance
+**Dampak:** Model lebih simple, cepat, interpretable mencapai 99.87% performa maksimum
 
-**Thank You! Questions? 🙋**
+**Terima Kasih! Pertanyaan? 🙋**
 
 ---
 
