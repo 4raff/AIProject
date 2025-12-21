@@ -257,64 +257,13 @@ Algorithm \ref{alg:genetic_algorithm} menyajikan workflow lengkap genetic algori
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[htbp]
-\caption{Evaluasi Fungsi Fitness}
-\label{alg:fitness}
-\begin{algorithmic}[1]
-\REQUIRE Chromosome $c = [b_1, b_2, ..., b_n]$, Training data $X_{train}$, $y_{train}$, Validation data $X_{val}$, $y_{val}$
-\ENSURE Fitness score (R² pada validation set)
-\STATE $selected\_features \leftarrow \{i \mid b_i = 1, i \in \{1,...,n\}\}$
-\IF{$selected\_features = \emptyset$}
-    \RETURN $0$ \COMMENT{Tidak ada fitur terpilih, invalid}
-\ENDIF
-\STATE $X_{train}^{selected} \leftarrow X_{train}[:, selected\_features]$
-\STATE $X_{val}^{selected} \leftarrow X_{val}[:, selected\_features]$
-\STATE Train Linear Regression: $model \leftarrow$ LR.fit($X_{train}^{selected}, y_{train}$)
-\STATE $\hat{y}_{val} \leftarrow model$.predict($X_{val}^{selected}$)
-\STATE $R^2 \leftarrow$ ComputeR2($y_{val}, \hat{y}_{val}$)
-\RETURN $R^2$
-\end{algorithmic}
-\end{algorithm}
 
-\begin{algorithm}[htbp]
-\caption{Tournament Selection}
-\label{alg:tournament}
-\begin{algorithmic}[1]
-\REQUIRE Population $P$, Tournament size $k$
-\ENSURE Kromosom parent terpilih
-\STATE Pilih secara random $k$ kromosom dari $P$
-\STATE $winner \leftarrow$ kromosom dengan fitness tertinggi di antara $k$ terpilih
-\RETURN $winner$
-\end{algorithmic}
-\end{algorithm}
 
-\begin{algorithm}[htbp]
-\caption{Single-Point Crossover}
-\label{alg:crossover}
-\begin{algorithmic}[1]
-\REQUIRE Parent chromosomes $parent_1, parent_2$ dengan panjang $n$
-\ENSURE Offspring chromosomes $child_1, child_2$
-\STATE $point \leftarrow$ random integer dalam $[1, n-1]$
-\STATE $child_1 \leftarrow parent_1[0:point] + parent_2[point:n]$
-\STATE $child_2 \leftarrow parent_2[0:point] + parent_1[point:n]$
-\RETURN $child_1, child_2$
-\end{algorithmic}
-\end{algorithm}
 
-\begin{algorithm}[htbp]
-\caption{Bit-Flip Mutation}
-\label{alg:mutation}
-\begin{algorithmic}[1]
-\REQUIRE Chromosome $c = [b_1, b_2, ..., b_n]$, Mutation rate $p_m$
-\ENSURE Mutated chromosome $c'$
-\FOR{$i = 1$ to $n$}
-    \IF{random() $< p_m$}
-        \STATE $b_i \leftarrow 1 - b_i$ \COMMENT{Flip bit: 0→1 atau 1→0}
-    \ENDIF
-\ENDFOR
-\RETURN $c$
-\end{algorithmic}
-\end{algorithm}
+
+
+
+
 
 \subsection{Metrik Evaluasi}
 
@@ -350,10 +299,10 @@ R^2 = 1 - \frac{SS_{res}}{SS_{tot}} = 1 - \frac{\sum(y_i - \hat{y}_i)^2}{\sum(y_
 Untuk aplikasi praktis, kami mengkategorikan Performance Index ke dalam empat level menggunakan threshold berbasis kuartil:
 
 \begin{itemize}
-    \item \textbf{Excellent}: $> Q_3$ (75.73)
-    \item \textbf{Good}: $Q_2$ to $Q_3$ (60.63 - 75.73)
-    \item \textbf{Average}: $Q_1$ to $Q_2$ (45.48 - 60.63)
-    \item \textbf{Poor}: $< Q_1$ (45.48)
+    \item \textbf{Excellent}: $> Q_3$ (70.00)
+    \item \textbf{Good}: $Q_2$ to $Q_3$ (55.00 - 70.00)
+    \item \textbf{Average}: $Q_1$ to $Q_2$ (40.00 - 55.00)
+    \item \textbf{Poor}: $< Q_1$ (40.00)
 \end{itemize}
 
 Kami mengevaluasi akurasi prediksi kategorikal menggunakan confusion matrix dan metrik klasifikasi.
@@ -371,10 +320,10 @@ Baseline Linear Regression model menggunakan semua 5 fitur mencapai performa ber
 \hline
 \textbf{Metrik} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
 \hline
-R² & 0.9891 & 0.9890 & 0.9890 \\
-RMSE & 2.0086 & 2.0146 & 2.0218 \\
-MAE & 1.6018 & 1.6069 & 1.6123 \\
-MAPE (\%) & 3.48 & 3.49 & 3.50 \\
+R² & 0.9885 & 0.9884 & 0.9890 \\
+RMSE & 2.0526 & 2.0974 & 2.0218 \\
+MAE & 1.6261 & 1.6690 & 1.6123 \\
+MAPE (\%) & 3.45 & 3.59 & 3.50 \\
 \hline
 \end{tabular}
 \label{tab:baseline}
@@ -393,6 +342,12 @@ Algoritma Genetika berhasil konvergen selama 50 generasi:
     \item \textbf{Peningkatan Fitness}: +1.05\%
     \item \textbf{Perilaku Konvergensi}: Peningkatan stabil dengan stabilisasi setelah generasi 35
 \end{itemize}
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\columnwidth]{convergence_plot.png}}
+\caption{Konvergensi Algoritma Genetika: Best Fitness dan Average Fitness selama 50 generasi. Plot menunjukkan peningkatan fitness yang stabil dengan konvergensi dicapai pada generasi ke-35.}
+\label{fig:convergence}
+\end{figure}
 
 \subsection{Performa GA-Optimized Model}
 
