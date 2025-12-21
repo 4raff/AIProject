@@ -32,7 +32,7 @@ Prediksi Student Performance Index Menggunakan Linear Regression dengan Optimasi
 - Identifikasi dini siswa berisiko
 - Model lebih interpretable untuk stakeholder
 - Efisiensi pengumpulan data & inference
-
+s
 ---
 
 ## SLIDE 3: DATASET & TUJUAN PENELITIAN
