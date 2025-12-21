@@ -195,7 +195,7 @@ Data (10k) → Preprocessing → Baseline Model (5 fitur) → GA Feature Selecti
 | 📊 **Average** | 40-55 (Q₁-Q₂) | Performa rata-rata |
 | ⚠️ **Poor** | < 40 (Q₁) | Perlu intervensi |
 
-**Hasil (Model GA):** Akurasi Kategorikal = **92.05%** | Confusion Matrix diagonal kuat
+**Hasil (Model GA):** Akurasi Kategorikal = **91.65%** | Confusion Matrix diagonal kuat
 
 **Aplikasi Praktis:**
 1. **Early Warning System:** Identifikasi siswa Poor/Average untuk intervensi dini
@@ -206,7 +206,7 @@ Data (10k) → Preprocessing → Baseline Model (5 fitur) → GA Feature Selecti
 **KESIMPULAN UTAMA:**
 1. ✅ GA + Linear Regression berhasil reduksi **40% fitur** dengan ROI **307:1**
 2. ✅ **3 Fitur kritis:** Previous Scores (17.58), Hours Studied (7.41), Sleep Hours (0.83)
-3. ✅ Akurasi kategorisasi **92.05%** → aplikasi praktis feasible
+3. ✅ Akurasi kategorisasi **91.65%** → aplikasi praktis feasible
 4. ✅ **Tidak ada overfitting** (train-test gap < 0.2%)
 5. ✅ Model **production-ready:** Score 9.93/10 vs baseline 7.14/10
 
@@ -237,7 +237,7 @@ Data (10k) → Preprocessing → Baseline Model (5 fitur) → GA Feature Selecti
 **Emphasize (Key Messages):**
 1. **ROI 307:1** - Exceptional trade-off ratio
 2. **99.87%** of max performance with **60%** of features
-3. **92.05%** categorical accuracy for practical use
+3. **91.65%** categorical accuracy for practical use
 4. **Algorithm transparency** - 6 detailed algorithms in paper
 5. **Production-ready** with multi-criteria evaluation (9.93/10)
 
